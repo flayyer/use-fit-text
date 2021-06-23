@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { dequal } from 'dequal/lite';
 
 export type TLogLevel = "debug" | "info" | "warn" | "error" | "none";
 
@@ -35,7 +36,7 @@ const useIsoLayoutEffect =
     ? useLayoutEffect
     : useEffect;
 
-export function useFitText<T extends HTMLElement = HTMLElement>({
+export function useFitText<T extends HTMLElement = HTMLDivElement>({
   logLevel: logLevelOption = "warn",
   maxFontSize = 100,
   minFontSize = 20,
@@ -57,6 +58,7 @@ export function useFitText<T extends HTMLElement = HTMLElement>({
 
   const ref = useRef<T>(null);
   const isCalculatingRef = useRef(false);
+  const depsPrevRef = useRef<DependencyList>();
   const [state, setState] = useState(initState);
   const { calcKey, fontSize, fontSizeMax, fontSizeMin, fontSizePrev } = state;
 
@@ -94,16 +96,20 @@ export function useFitText<T extends HTMLElement = HTMLElement>({
   }, [animationFrameId, ro]);
 
   // Recalculate when dependencies change
+  const depsPrev = depsPrevRef.current;
   useEffect(() => {
     if (calcKey === 0 || isCalculatingRef.current) {
       return;
     }
-    onStart && onStart();
-    setState({
-      ...initState(),
-      calcKey: calcKey + 1,
-    });
-  }, [calcKey, initState, onStart, ...deps]);
+    if (!dequal(depsPrev, deps)) {
+      onStart && onStart();
+      setState({
+        ...initState(),
+        calcKey: calcKey + 1,
+      });
+    }
+    depsPrevRef.current = deps;
+  }, [calcKey, initState, onStart, depsPrev, ...deps]);
 
   // Check overflow and resize font
   useIsoLayoutEffect(() => {
