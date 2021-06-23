@@ -1,11 +1,11 @@
 import {
+  DependencyList,
   useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from "react";
-import ResizeObserver from "resize-observer-polyfill";
 
 export type TLogLevel = "debug" | "info" | "warn" | "error" | "none";
 
@@ -35,14 +35,14 @@ const useIsoLayoutEffect =
     ? useLayoutEffect
     : useEffect;
 
-const useFitText = ({
-  logLevel: logLevelOption = "info",
+export function useFitText<T extends HTMLElement = HTMLElement>({
+  logLevel: logLevelOption = "warn",
   maxFontSize = 100,
   minFontSize = 20,
   onFinish,
   onStart,
   resolution = 5,
-}: TOptions = {}) => {
+}: TOptions = {}, deps?: DependencyList) {
   const logLevel = LOG_LEVEL[logLevelOption];
 
   const initState = useCallback(() => {
@@ -55,17 +55,16 @@ const useFitText = ({
     };
   }, [maxFontSize, minFontSize]);
 
-  const ref = useRef<HTMLDivElement>(null);
-  const innerHtmlPrevRef = useRef<string>();
+  const ref = useRef<T>(null);
   const isCalculatingRef = useRef(false);
   const [state, setState] = useState(initState);
   const { calcKey, fontSize, fontSizeMax, fontSizeMin, fontSizePrev } = state;
 
-  // Montior div size changes and recalculate on resize
+  // Monitor div size changes and recalculate on resize
   let animationFrameId: number | null = null;
   const [ro] = useState(
     () =>
-      new ResizeObserver(() => {
+      new window.ResizeObserver(() => {
         animationFrameId = window.requestAnimationFrame(() => {
           if (isCalculatingRef.current) {
             return;
@@ -94,21 +93,17 @@ const useFitText = ({
     };
   }, [animationFrameId, ro]);
 
-  // Recalculate when the div contents change
-  const innerHtml = ref.current && ref.current.innerHTML;
+  // Recalculate when dependencies change
   useEffect(() => {
     if (calcKey === 0 || isCalculatingRef.current) {
       return;
     }
-    if (innerHtml !== innerHtmlPrevRef.current) {
-      onStart && onStart();
-      setState({
-        ...initState(),
-        calcKey: calcKey + 1,
-      });
-    }
-    innerHtmlPrevRef.current = innerHtml;
-  }, [calcKey, initState, innerHtml, onStart]);
+    onStart && onStart();
+    setState({
+      ...initState(),
+      calcKey: calcKey + 1,
+    });
+  }, [calcKey, initState, onStart, ...deps]);
 
   // Check overflow and resize font
   useIsoLayoutEffect(() => {
@@ -183,5 +178,3 @@ const useFitText = ({
 
   return { fontSize: `${fontSize}%`, ref };
 };
-
-export default useFitText;

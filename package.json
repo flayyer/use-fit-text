@@ -1,5 +1,5 @@
 {
-  "name": "use-fit-text",
+  "name": "@flayyer/use-fit-text",
   "version": "2.4.0",
   "description": "React hook used to fit text in a div",
   "author": "saltycrane",
@@ -8,9 +8,11 @@
   "main": "dist/index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/saltycrane/use-fit-text.git"
+    "url": "https://github.com/flayyer/use-fit-text.git"
   },
+  "files": ["dist"],
   "keywords": [
+    "flayyer",
     "react",
     "fit",
     "text"
@@ -24,11 +26,9 @@
   "peerDependencies": {
     "react": ">=16.8.0"
   },
-  "dependencies": {
-    "resize-observer-polyfill": "^1.5.1"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@types/react": "^16.9.49",
-    "microbundle": "^0.12.3"
+    "@types/react": "^17.0.11",
+    "microbundle": "^0.13.3"
   }
 }
