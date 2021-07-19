@@ -1,6 +1,6 @@
 {
   "name": "@flyyer/use-fit-text",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "React hook used to fit text in a div",
   "author": "saltycrane",
   "license": "MIT",
