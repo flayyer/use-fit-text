@@ -1,41 +1,78 @@
-# use-fit-text [![npm version](https://badge.fury.io/js/use-fit-text.svg)](https://badge.fury.io/js/use-fit-text)
+# @flyyer/use-fit-text
 
 React hook that iteratively adjusts the font size so that text will fit in a div.
- 
+
   - checks if text is overflowing by [using `scrollHeight` and `offsetHeight`](https://stackoverflow.com/a/10017343/101911)
   - recalculates when container is resized (using ([polyfilled](https://github.com/que-etc/resize-observer-polyfill)) [`ResizeObserver`](https://developers.google.com/web/updates/2016/10/resizeobserver))
   - recalculates when content changes
   - uses binary search; with default options, makes a maximum of 5 adjustments with a resolution of 5% font size from 20-100%
-  - [< 4 kB](https://bundlephobia.com/result?p=use-fit-text@2.4.0) minified + gzipped
+  - [< 4 kB](https://bundlephobia.com/result?p=@flyyer/use-fit-text) minified + gzipped
   - written in TypeScript
 
 ## Installation
 
-```
-npm install --save use-fit-text
+This module is meant for Flyyer.io templates to generate dynamic og:images for your links. But you can use it in other projects if it fits your needs.
+
+```sh
+yarn add @flyyer/use-fit-text
 ```
 
 ## Usage
 
-```js
+```tsx
 import React from "react";
-import useFitText from "use-fit-text";
+import clsx from "clsx";
+import useFitText from "@flyyer/use-fit-text";
 
-function Example() {
-  const { fontSize, ref } = useFitText();
+// Example for a flyyer.io template: $ npm create flyyer-app
+export default function ExampleTemplate({ variables }) {
+  const title = variables["title"];
+  const description = variables["description"];
 
+  // UI-dependent variables (title and description) are added to the hook's dependency array.
+  const { fontSize, ref, isCalculating } = useFitText(
+    {
+      /** Depends on body's fontSize (usually 16px) */
+      maxFontSize: 1000, // 1000%
+      /** Lower values are more strict but causes more renders, defaults to `5` */
+      resolution: 10,
+    },
+    [title, description],
+  );
+
+  const className = clsx({ "flyyer-wait": isCalculating }) // use class flyyer-wait to prevent eager renders of flyyer templates.
   return (
-    <div ref={ref} style={{ fontSize, height: 40, width: 100 }}>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    <div ref={ref} style={{ fontSize, height: 40, width: 100 }} className={className}>
+      <h1 style={{ fontSize: "2em" }}>
+        {title}
+      </h1>
+      <p style={{ fontSize: "1.2em" }}>
+        {description}
+      </p>
     </div>
   );
 }
 ```
 
-## Demo / example code
+If your text also depends on other style variables such as `fontFamily`, `letterSpacing`, etc; you should add them to the dependency array:
 
-- Demo site: https://saltycrane.github.io/use-fit-text/
-- [Example code](/examples/pages/index.tsx) is in the `/examples` folder
+```tsx
+const title = variables["title"];
+const fontFamily = variables["fontFamily"];
+const { fontSize, ref, isCalculating } = useFitText({}, [title, fontFamily, letterSpacing]);
+// ...
+```
+
+## About
+
+This project is a fork from [saltycrane/use-fit-text](https://github.com/saltycrane/use-fit-text).
+
+The main difference is:
+
+- The original project depends on the `innerHTML` of the `ref` element to check for changes.
+- This fork has an explicit dependency array (same concept as `useEffect(, [dependencies])`).
+
+The main benefic is explicit control and easier to trigger re-calculations.
 
 ## API
 
@@ -59,28 +96,3 @@ function Example() {
   This appears [to be](https://stackoverflow.com/questions/36130760/use-justify-content-flex-end-and-to-have-vertical-scrollbar) [a bug](https://github.com/philipwalton/flexbugs/issues/53) with Flexbox. Try using CSS Grid or `margin-top: auto;`
 - What does the "reached `minFontSize = 20` without fitting text" message in the console mean?
   This means `use-fit-text` was not able to fit the text using the `minFontSize` setting of 20. To ensure the text fits, set `minFontSize` to a smaller value.
-
-## Changelog
-
-- v2.4.0
-  - handle case where `minFontSize` is set larger than the `fontSize` value needed to fit the text in the div. Log a message to the console in this case.
-  - fix final adjustment calcuation
-  - add `logLevel` option to control what is logged to the console
-- v2.3.0
-  - automatically recalculate font size when content changes
-  - fix bug where a recalculation was not done on resize if the text initially fit in the div
-- v2.2.0 - add `onStart` and `onFinish` callbacks
-- v2.1.3 - export `TOptions` TypeScript type
-- v2.1.2 - remove `/// <reference types="next" />` in `dist/index.d.ts`
-- v2.1.0
-  - fix SSR/prerender issue where text did not resize
-  - suppress `useLayoutEffect` warning for server render
-- v2.0.0
-  - use `ResizeObserver` to always recalculate on container resize
-  - remove `recalcOnResize` option
-  - `useLayoutEffect` instead of `useEffect` to avoid flashing
-- v1.2.1 - fix scrollbar issue in example
-- v1.2.0 - add `recalcOnResize` and other options
-- v1.1.0 - fix binary search bug
-- v1.0.2 - add example
-- v1.0.0 - initial release

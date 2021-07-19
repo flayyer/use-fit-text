@@ -42,6 +42,7 @@ export function useFitText<T extends HTMLElement = HTMLDivElement>({
   minFontSize = 20,
   onFinish,
   onStart,
+  /** Lower values are more strict but causes more renders, defaults to `5` */
   resolution = 5,
 }: TOptions = {}, deps?: DependencyList) {
   const logLevel = LOG_LEVEL[logLevelOption];
@@ -60,6 +61,7 @@ export function useFitText<T extends HTMLElement = HTMLDivElement>({
   const isCalculatingRef = useRef(false);
   const depsPrevRef = useRef<DependencyList>();
   const [state, setState] = useState(initState);
+  const [isCalculating, setCalculating] = useState(false);
   const { calcKey, fontSize, fontSizeMax, fontSizeMin, fontSizePrev } = state;
 
   // Monitor div size changes and recalculate on resize
@@ -73,6 +75,7 @@ export function useFitText<T extends HTMLElement = HTMLDivElement>({
           }
           onStart && onStart();
           isCalculatingRef.current = true;
+          setCalculating(true);
           // `calcKey` is used in the dependencies array of
           // `useIsoLayoutEffect` below. It is incremented so that the font size
           // will be recalculated even if the previous state didn't change (e.g.
@@ -103,6 +106,7 @@ export function useFitText<T extends HTMLElement = HTMLDivElement>({
     }
     if (!dequal(depsPrev, deps)) {
       onStart && onStart();
+      setCalculating(true);
       setState({
         ...initState(),
         calcKey: calcKey + 1,
@@ -133,6 +137,7 @@ export function useFitText<T extends HTMLElement = HTMLDivElement>({
     if (isWithinResolution) {
       if (isFailed) {
         isCalculatingRef.current = false;
+        setCalculating(false);
         if (logLevel <= LOG_LEVEL.info) {
           console.info(
             `[use-fit-text] reached \`minFontSize = ${minFontSize}\` without fitting text`,
@@ -148,6 +153,7 @@ export function useFitText<T extends HTMLElement = HTMLDivElement>({
         });
       } else {
         isCalculatingRef.current = false;
+        setCalculating(false);
         onFinish && onFinish(fontSize);
       }
       return;
@@ -182,5 +188,5 @@ export function useFitText<T extends HTMLElement = HTMLDivElement>({
     resolution,
   ]);
 
-  return { fontSize: `${fontSize}%`, ref };
+  return { fontSize: `${fontSize}%`, ref, isCalculating };
 };
