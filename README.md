@@ -22,7 +22,7 @@ yarn add @flyyer/use-fit-text
 ```tsx
 import React from "react";
 import clsx from "clsx";
-import useFitText from "@flyyer/use-fit-text";
+import { useFitText } from "@flyyer/use-fit-text";
 
 // Example for a flyyer.io template: $ npm create flyyer-app
 export default function ExampleTemplate({ variables }) {
