@@ -32,7 +32,7 @@
     "dequal": "^2.0.2"
   },
   "devDependencies": {
-    "@types/react": "^17.0.14",
+    "@types/react": "^17.0.32",
     "microbundle": "^0.13.3"
   }
 }
